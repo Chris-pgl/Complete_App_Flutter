@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -140,7 +141,14 @@ class _InfoTourPageState extends State<InfoTourPage> {
   final emailController = TextEditingController();
   final messageController = TextEditingController();
 
+  bool isSending = false;
+
   Future<void> sendData() async {
+    if (isSending) return; // previene click multipli
+    setState(() {
+      isSending = true;
+    });
+
     final url = Uri.parse('http://10.0.2.2:3000/comments');
 
     try {
@@ -148,30 +156,34 @@ class _InfoTourPageState extends State<InfoTourPage> {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "postId": 1,
+          "postId": 1, // unico post predefinito
           "author": emailController.text,
           "body": messageController.text,
+          "city": widget.city, // opzionale, se vuoi salvare la città
         }),
       );
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Inviato ✅")));
+        ).showSnackBar(SnackBar(content: Text("Commento inviato ✅")));
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => PostsPage()),
-        );
+        // Pulisce i campi
+        emailController.clear();
+        messageController.clear();
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Errore ❌")));
+        ).showSnackBar(SnackBar(content: Text("Errore nell'invio ❌")));
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Errore connessione ❌")));
+    } finally {
+      setState(() {
+        isSending = false;
+      });
     }
   }
 
@@ -185,7 +197,7 @@ class _InfoTourPageState extends State<InfoTourPage> {
           key: _formKey,
           child: Column(
             children: [
-              Text("Città: ${widget.city}"),
+              Text("Città: ${widget.city}", style: TextStyle(fontSize: 16)),
               SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
@@ -218,7 +230,26 @@ class _InfoTourPageState extends State<InfoTourPage> {
                     sendData();
                   }
                 },
-                child: Text("Invia"),
+                child: isSending
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text("Invia"),
+              ),
+              SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PostsPage()),
+                  );
+                },
+                child: Text("Visualizza Post e Commenti"),
               ),
             ],
           ),

@@ -1,11 +1,14 @@
 {
   "infoTour": [],
   "posts": [
-    {
-      "id": 1,
-      "title": "Benvenuto nella nostra città!",
-      "author": "Admin"
-    }
+    { "id": 1, "title": "Night City Tour", "author": "admin@tour.com" },
+    { "id": 2, "title": "Columbia Adventure", "author": "admin@tour.com" },
+    { "id": 3, "title": "Rapture Exploration", "author": "admin@tour.com" }
   ],
-  "comments": []
+  "comments": [
+    { "id": 1, "postId": 1, "author": "alice@example.com", "body": "Bellissima esperienza!", "city": "Night City" },
+    { "id": 2, "postId": 1, "author": "bob@example.com", "body": "Non vedo l'ora di andarci", "city": "Night City" },
+    { "id": 3, "postId": 2, "author": "carla@example.com", "body": "La città volante è fantastica!", "city": "Columbia" },
+    { "id": 4, "postId": 3, "author": "dave@example.com", "body": "Sottomarino meraviglioso", "city": "Rapture" }
+  ]
 }
