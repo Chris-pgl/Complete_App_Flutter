@@ -225,6 +225,7 @@ class _InfoTourPageState extends State<InfoTourPage> {
                 },
               ),
               SizedBox(height: 20),
+              //Non invia realmente i dati, non riesco a farlo funzionare.
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -267,6 +268,7 @@ Future<Map<String, dynamic>> loadDbJson() async {
 }
 
 //pagina per post:
+//prende i post e commenti dal db.json locale
 class PostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

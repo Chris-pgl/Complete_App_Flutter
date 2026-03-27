@@ -6,9 +6,9 @@
     { "id": 3, "title": "Rapture Exploration", "author": "admin@tour.com" }
   ],
   "comments": [
-    { "id": 1, "postId": 1, "author": "alice@example.com", "body": "Bellissima esperienza!", "city": "Night City" },
-    { "id": 2, "postId": 1, "author": "bob@example.com", "body": "Non vedo l'ora di andarci", "city": "Night City" },
-    { "id": 3, "postId": 2, "author": "carla@example.com", "body": "La città volante è fantastica!", "city": "Columbia" },
-    { "id": 4, "postId": 3, "author": "dave@example.com", "body": "Sottomarino meraviglioso", "city": "Rapture" }
+    { "id": 1, "postId": 1, "author": "V@gmail.com", "body": "Bellissima esperienza! Accoltellato dopo 1 ora!", "city": "Night City" },
+    { "id": 2, "postId": 1, "author": "Chom@gmail.com", "body": "Non vedo l'ora di andarci, prima compro qualche arma però!", "city": "Night City" },
+    { "id": 3, "postId": 2, "author": "Elizabeth @gmail.com", "body": "La città volante è fantastica!", "city": "Columbia" },
+    { "id": 4, "postId": 3, "author": "BigDaddy@gmail.com", "body": "La Città sottomarino è meravigliosa, ci passo molto tempo con la mia Sorellina.", "city": "Rapture" }
   ]
 }
