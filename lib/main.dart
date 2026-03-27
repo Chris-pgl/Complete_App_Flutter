@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 
 void main() {
@@ -144,7 +144,7 @@ class _InfoTourPageState extends State<InfoTourPage> {
   bool isSending = false;
 
   Future<void> sendData() async {
-    if (isSending) return; // previene click multipli
+    if (isSending) return;
     setState(() {
       isSending = true;
     });
@@ -156,10 +156,11 @@ class _InfoTourPageState extends State<InfoTourPage> {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "postId": 1, // unico post predefinito
+          // unico post predefinito
+          "postId": 1,
           "author": emailController.text,
           "body": messageController.text,
-          "city": widget.city, // opzionale, se vuoi salvare la città
+          "city": widget.city,
         }),
       );
 
@@ -259,65 +260,74 @@ class _InfoTourPageState extends State<InfoTourPage> {
   }
 }
 
-//pagina per post:
-class PostsPage extends StatefulWidget {
-  @override
-  _PostsPageState createState() => _PostsPageState();
+Future<Map<String, dynamic>> loadDbJson() async {
+  final String jsonString = await rootBundle.loadString('assets/db.json');
+  final Map<String, dynamic> data = jsonDecode(jsonString);
+  return data;
 }
 
-class _PostsPageState extends State<PostsPage> {
-  List<dynamic> posts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchPosts();
-  }
-
-  Future<void> fetchPosts() async {
-    final url = Uri.parse('http://10.0.2.2:3000/posts?_embed=comments');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      setState(() {
-        posts = jsonDecode(response.body);
-      });
-    } else {
-      // Gestisci errore
-    }
-  }
-
+//pagina per post:
+class PostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Posts e Commenti')),
-      body: ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          final comments = post['comments'] ?? [];
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: loadDbJson(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData) {
+            return Center(child: Text('Errore nel caricamento'));
+          }
 
-          return Card(
-            margin: EdgeInsets.all(12),
-            child: Padding(
-              padding: EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post['title'],
-                    style: TextStyle(fontWeight: FontWeight.bold),
+          final posts = snapshot.data!['posts'] ?? [];
+
+          if (posts.isEmpty) {
+            return Center(child: Text('Nessun post disponibile'));
+          }
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              final allComments = snapshot.data!['comments'] ?? [];
+              final comments = allComments
+                  .where((c) => c['postId'] == post['id'])
+                  .toList();
+
+              return Card(
+                margin: EdgeInsets.all(12),
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post['title'] ?? 'Titolo assente',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text('Autore: ${post['author'] ?? "Sconosciuto"}'),
+                      SizedBox(height: 8),
+                      Text('Commenti:'),
+                      comments.isNotEmpty
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: comments
+                                  .map<Widget>((c) => Text('- ${c['body']}'))
+                                  .toList(),
+                            )
+                          : Text(
+                              'Nessun commento',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                    ],
                   ),
-                  SizedBox(height: 8),
-                  Text('Autore: ${post['author']}'),
-                  SizedBox(height: 8),
-                  Text('Commenti:'),
-                  ...comments
-                      .map<Widget>((comment) => Text('- ${comment['body']}'))
-                      .toList(),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),
