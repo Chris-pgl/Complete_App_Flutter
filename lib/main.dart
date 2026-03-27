@@ -1,7 +1,6 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(MyApp());
@@ -142,23 +141,38 @@ class _InfoTourPageState extends State<InfoTourPage> {
   final messageController = TextEditingController();
 
   Future<void> sendData() async {
-    final url = Uri.parse('http://10.0.2.2:3000/infoTour');
+    final url = Uri.parse('http://10.0.2.2:3000/comments');
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "city": widget.city,
-        "email": emailController.text,
-        "message": messageController.text,
-      }),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "postId": 1,
+          "author": emailController.text,
+          "body": messageController.text,
+        }),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(response.statusCode == 201 ? "Inviato ✅" : "Errore ❌"),
-      ),
-    );
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Inviato ✅")));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => PostsPage()),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Errore ❌")));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Errore connessione ❌")));
+    }
   }
 
   @override
@@ -175,16 +189,14 @@ class _InfoTourPageState extends State<InfoTourPage> {
               SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: "Email"),
+                decoration: InputDecoration(labelText: "Email (Author)"),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.isEmpty)
                     return "Email obbligatoria";
-                  }
                   if (!RegExp(
                     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                  ).hasMatch(value)) {
+                  ).hasMatch(value))
                     return "Email non valida";
-                  }
                   return null;
                 },
               ),
@@ -194,9 +206,8 @@ class _InfoTourPageState extends State<InfoTourPage> {
                 decoration: InputDecoration(labelText: "Messaggio"),
                 maxLines: 4,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.isEmpty)
                     return "Messaggio obbligatorio";
-                  }
                   return null;
                 },
               ),
@@ -212,6 +223,72 @@ class _InfoTourPageState extends State<InfoTourPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+//pagina per post:
+class PostsPage extends StatefulWidget {
+  @override
+  _PostsPageState createState() => _PostsPageState();
+}
+
+class _PostsPageState extends State<PostsPage> {
+  List<dynamic> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPosts();
+  }
+
+  Future<void> fetchPosts() async {
+    final url = Uri.parse('http://10.0.2.2:3000/posts?_embed=comments');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      setState(() {
+        posts = jsonDecode(response.body);
+      });
+    } else {
+      // Gestisci errore
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Posts e Commenti')),
+      body: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          final comments = post['comments'] ?? [];
+
+          return Card(
+            margin: EdgeInsets.all(12),
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post['title'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Autore: ${post['author']}'),
+                  SizedBox(height: 8),
+                  Text('Commenti:'),
+                  ...comments
+                      .map<Widget>((comment) => Text('- ${comment['body']}'))
+                      .toList(),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

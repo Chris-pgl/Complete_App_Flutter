@@ -1,3 +1,11 @@
 {
-  "infoTour": []
+  "infoTour": [],
+  "posts": [
+    {
+      "id": 1,
+      "title": "Benvenuto nella nostra città!",
+      "author": "Admin"
+    }
+  ],
+  "comments": []
 }
